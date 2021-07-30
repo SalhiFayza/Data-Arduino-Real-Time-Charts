@@ -1,0 +1,347 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container">
+  <center><h1>Live Data from Arduino connected with the sensors</h1></center>
+  <hr/>
+
+  <div class="row d-flex justify-content-center">
+    <div class="col-md-4"><label>Enter Com Port:</label></div>
+        <div class="col-md-4" >
+            <input type="text" class="form-control col-md-2" name="com" id="comport">
+        </div>
+    <div class="col-md-4">
+      <input
+        value="Live Data from Arduino"
+        type="submit"
+        name="submit"
+        id="btn_show_chart1"
+        class="btn btn-primary"
+        
+      />
+    </div>
+  </div>
+
+  <br />
+  <hr />
+  <div class="row">
+    <div id="chartContainer1"></div>
+  </div>
+  <div style="margin-top: 40%" class="row">
+    <div id="chartContainer2"></div>
+  </div>
+  <div style="margin-top: 40%" class="row">
+    <div id="chartContainer3"></div>
+  </div>
+  <div style="margin-top: 40%" class="row">
+    <div id="chartContainer4"></div>
+  </div>
+</div>
+
+  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+  <script>
+    $("#btn_show_chart1").click(function () {
+      com=$("#comport").val();
+      fill_graph_sensor1(com);
+      fill_graph_sensor2(com);
+      fill_graph_sensor3(com);
+      fill_graph_sensor4(com);
+    });
+    function fill_graph_sensor1() {
+      var dps = []; // dataPoints
+      var chart = new CanvasJS.Chart("chartContainer1",{
+        animationEnabled: true,
+        title: {
+          text: "Charts Humidity ",
+          fontFamily: "arial black",
+		      fontColor: "#FF6384"
+        },
+        axisX: {
+          title: "Time",
+        },
+        axisY: {
+          title: "Humidity",
+          suffix: "%",
+		      includeZero: true,
+          
+          maximum : 100,
+        },
+        data: [
+          {
+            type: "spline",
+            name: "CPU Utilization",
+            connectNullData: true,
+            color: "#FF6384",
+            xValueType: "dateTime",
+            xValueFormatString: "DD MMM hh:mm TT",
+            yValueFormatString: '#,##0.##"%"',
+            dataPoints: dps,
+          },
+        ],
+      });
+      var xVal = 0;
+      var yVal = 100;
+      var updateInterval = 4000; //miliseconds
+      var dataLength = 100; // number of dataPoints visible at any point
+      var updateChart = function () {
+        $.ajax({
+          type: "get",
+          url: "{% url 'app:fetch_sensor_values_ajax_com' %}",
+          data: {
+                     'id': com
+                   },
+          success: function (data) {
+            console.log(data.result);
+            var str_array = data.result[0].split(",");
+            console.log(str_array);
+            dps.push({
+              x: Date.parse(str_array[1]),
+              y: Number(str_array[0]),
+            });
+
+            return data;
+          },
+          error: function () {
+            console.log("error he ji");
+          },
+        });
+        if (dps.length > dataLength) {
+          dps.shift();
+        }
+        chart.render();
+      };
+      updateChart(dataLength);
+      setInterval(function () {
+        updateChart();
+      }, updateInterval);
+    }
+    function fill_graph_sensor2() {
+      var dps = []; // dataPoints
+      var chart = new CanvasJS.Chart("chartContainer2", {
+        animationEnabled: true,
+        title: {
+          text: "Charts Temperature ",
+          fontFamily: "arial black",
+		      fontColor: "#4BC0C0"
+        },
+        axisX: {
+          title: "Time",
+        },
+        axisY: {
+          title: "Temperature",
+          suffix: "°C",
+          viewportMinimum: -80,
+          viewportMaximum: 80
+          
+        },
+        data: [
+          {
+            type: "spline",
+            name: "CPU Utilization",
+            connectNullData: true,
+            color: "#4BC0C0",
+            xValueType: "dateTime",
+            xValueFormatString: "DD MMM hh:mm TT",
+            yValueFormatString: '#,##0.##"°C"',
+            dataPoints: dps,
+          },
+        ],
+      });
+      var xVal = 0;
+      var yVal = 100;
+      var updateInterval = 4000; //miliseconds
+      var dataLength = 20; // number of dataPoints visible at any point
+      var updateChart = function () {
+        $.ajax({
+          type: "get",
+          url: "{% url 'app:fetch_sensor_values_ajax_com' %}",
+          data: {
+                     'id': com
+                   },
+          success: function (data) {
+            console.log(data.result);
+            var str_array = data.result[1].split(",");
+            console.log(str_array);
+
+            dps.push({
+              x: Date.parse(str_array[1]),
+              y: Number(str_array[0]),
+            });
+
+            return data;
+          },
+          error: function () {
+            console.log("error he ji");
+          },
+        });
+        if (dps.length > dataLength) {
+          dps.shift();
+        }
+        chart.render();
+      };
+      updateChart(dataLength);
+      setInterval(function () {
+        updateChart();
+      }, updateInterval);
+    }
+    function fill_graph_sensor3() {
+      var dps = []; // dataPoints
+      var chart = new CanvasJS.Chart("chartContainer3", {
+        animationEnabled: true,
+       
+        
+        title: {
+          text: "Charts WaterTemp ",
+          fontFamily: "arial black",
+		      fontColor: "#FFCE56"
+        },
+        axisX: {
+          title: "Time",
+        },
+        axisY: {
+          title: "WaterTemp",
+          suffix: "°C",
+          viewportMinimum: -170,
+          viewportMaximum: 170
+        },
+        data: [
+        {
+            type: "spline",
+            name: "CPU Utilization",
+            connectNullData: true,
+            color: "#FFCE56",
+            xValueType: "dateTime",
+            xValueFormatString: "DD MMM hh:mm TT",
+            yValueFormatString: '#,##0.##"°C"',
+            dataPoints: dps,
+          },
+        ],
+      });
+     
+      var xVal = 0;
+      var yVal = 100;
+      var updateInterval = 4000; //miliseconds
+      var dataLength = 20; // number of dataPoints visible at any point
+      var updateChart = function () {
+        $.ajax({
+          type: "get",
+          url: "{% url 'app:fetch_sensor_values_ajax_com' %}",
+          data: {
+                     'id': com
+                   },
+          success: function (data) {
+            console.log(data.result);
+            var str_array = data.result[2].split(",");
+            console.log(str_array);
+
+            dps.push({
+              x: Date.parse(str_array[1]),
+              y: Number(str_array[0]),
+            });
+
+            return data;
+          },
+          error: function () {
+            console.log("error he ji");
+          },
+        });
+        if (dps.length > dataLength) {
+          dps.shift();
+        }
+        chart.render();
+      };
+      updateChart(dataLength);
+      setInterval(function () {
+        updateChart();
+      }, updateInterval);
+    }
+    function fill_graph_sensor4() {
+      var dps = []; // dataPoints
+      var chart = new CanvasJS.Chart("chartContainer4", {
+        animationEnabled: true,
+        title: {
+          text: "Charts pH ",
+          fontFamily: "arial black",
+		      fontColor: "#36A2EB"
+        },
+        axisX: {
+          title: "Time",
+        },
+        axisY: {
+          title: "pH",
+          suffix: "",
+		       includeZero: true,
+          maximum : 15,
+        },
+        data: [
+          {
+            type: "spline",
+            name: "pH",
+            connectNullData: true,
+            color: "#36A2EB",
+            xValueType: "dateTime",
+            xValueFormatString: "DD MMM hh:mm TT",
+            yValueFormatString: '#,##0.##""',
+            dataPoints: dps,
+          },
+        ],
+      });
+      var xVal =0;
+      var yVal = 100;
+      var updateInterval = 4000; //miliseconds
+      var dataLength = 20; // number of dataPoints visible at any point
+      var updateChart = function () {
+        $.ajax({
+          type: "get",
+          url: "{% url 'app:fetch_sensor_values_ajax_com' %}",
+          data: {
+                     'id': com
+                   },
+          success: function (data) {
+            console.log(data.result);
+            var str_array = data.result[3].split(",");
+            console.log(str_array);
+
+            dps.push({
+              x: Date.parse(str_array[1]),
+              y: Number(str_array[0]),
+            });
+
+            return data;
+          },
+          error: function () {
+            console.log("error he ji");
+          },
+        });
+        if (dps.length > dataLength) {
+          dps.shift();
+        }
+        chart.render();
+      };
+      updateChart(dataLength);
+      setInterval(function () {
+        updateChart();
+      }, updateInterval);
+    }
+  </script>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      demo.initDashboardPageCharts();
+
+    });
+  </script>
+
+{% endblock javascripts %}
